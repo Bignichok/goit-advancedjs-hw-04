@@ -6,11 +6,6 @@
     visibility: visible;
 }
 
-.gallery.loading {
-    display: none;
-    visibility: hidden;
-}
-
 .gallery-item {
     display: flex;
     flex-direction: column;

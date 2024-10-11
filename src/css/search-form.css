@@ -1,8 +1,14 @@
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 32px 16px;
+}
+
 .search-form {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 32px 16px;
     gap: 8px;
 }
 
@@ -31,7 +37,7 @@
     border-color: #4E75FF;
 }
 
-.search-form-button {
+.button {
     display: inline-flex;
     padding: 8px 16px;
     justify-content: center;
@@ -48,6 +54,17 @@
     cursor: pointer;
 }
 
-.search-form-button:hover {
+.button:hover {
     background: #6C8CFF;
+}
+
+.load-more-button {
+    display: none;
+    visibility: hidden;
+    margin: 0 auto;
+}
+
+.load-more-button.active {
+    display: inline-flex;
+    visibility: visible;
 }

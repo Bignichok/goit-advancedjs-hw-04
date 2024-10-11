@@ -12,11 +12,24 @@ document.addEventListener('DOMContentLoaded', () => {
     form: document.querySelector('.search-form'),
     gallery: document.querySelector('.gallery'),
     spinner: document.querySelector('.spinner'),
+    loadMore: document.querySelector('.load-more-button'),
   };
 
-  const toggleLoading = () => {
-    refs.gallery.classList.toggle('loading');
-    refs.spinner.classList.toggle('loading');
+  let currentPage = 1;
+  let query = '';
+
+  const lightbox = new SimpleLightbox('.gallery a', {
+    captions: true,
+    captionsData: 'alt',
+    captionDelay: 250,
+  });
+
+  const toggleLoading = isLoading => {
+    refs.spinner.classList.toggle('loading', isLoading);
+  };
+
+  const toggleLoadMore = isVisible => {
+    refs.loadMore.classList.toggle('active', isVisible);
   };
 
   const showError = (
@@ -28,15 +41,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  const lightbox = new SimpleLightbox('.gallery a', {
-    captions: true,
-    captionsData: 'alt',
-    captionDelay: 250,
-  });
+  const renderImages = images => {
+    renderMarkup({
+      ref: refs.gallery,
+      markup: createGalleryMarkup(images),
+    });
+    lightbox.refresh();
+  };
 
-  refs.form.addEventListener('submit', e => {
+  const fetchAndRenderImages = async (isLoadMore = false) => {
+    try {
+      const { images, pages } = await fetchImages({ query, page: currentPage });
+      if (images.length) {
+        renderImages(images);
+        toggleLoadMore(pages > currentPage);
+
+        if (isLoadMore && pages <= currentPage) {
+          iziToast.info({
+            message:
+              "We're sorry, but you've reached the end of search results.",
+            position: 'topRight',
+          });
+        }
+      } else {
+        showError();
+      }
+    } catch (error) {
+      showError(
+        'An error occurred while fetching the images. Please try again later.'
+      );
+    } finally {
+      toggleLoading(false);
+    }
+  };
+
+  const onSubmit = async e => {
     e.preventDefault();
-    const query = refs.form.query.value.trim();
+    query = refs.form.query.value.trim();
 
     if (!query) {
       showError('Please enter a valid search query.');
@@ -44,28 +85,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     refs.gallery.innerHTML = '';
-    toggleLoading();
+    currentPage = 1;
+    toggleLoading(true);
+    toggleLoadMore(false);
 
-    fetchImages({ query })
-      .then(images => {
-        if (images.length) {
-          renderMarkup({
-            ref: refs.gallery,
-            markup: createGalleryMarkup(images),
-          });
+    await fetchAndRenderImages();
+  };
 
-          lightbox.refresh();
-        } else {
-          showError();
-        }
+  const onLoadMore = async () => {
+    currentPage++;
+    toggleLoading(true);
+    toggleLoadMore(false);
 
-        toggleLoading();
-      })
-      .catch(e => {
-        showError(
-          'An error occurred while fetching the images. Please try again later.'
-        );
-        toggleLoading();
-      });
-  });
+    await fetchAndRenderImages(true);
+
+    const galleryItem = document.querySelector('.gallery li');
+    if (galleryItem) {
+      const scrollHeight = galleryItem.getBoundingClientRect().height * 2;
+      window.scrollBy(0, scrollHeight);
+    }
+  };
+
+  refs.form.addEventListener('submit', onSubmit);
+  refs.loadMore.addEventListener('click', onLoadMore);
 });
