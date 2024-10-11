@@ -11,7 +11,6 @@ export const fetchImages = ({ query }) => {
       return response.json();
     })
     .then(images => {
-      console.log(images);
       return images.hits.map(
         ({
           comments,
