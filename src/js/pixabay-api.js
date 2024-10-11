@@ -2,7 +2,7 @@ export const fetchImages = ({ query }) => {
   return fetch(
     `https://pixabay.com/api/?key=18172942-eab38dca32c93699ea5d62826&q=${encodeURI(
       query
-    )}&image_type="photo"&orientation="horizontal"&safesearch="true`
+    )}&image_type=photo&orientation=horizontal&safesearch=true`
   )
     .then(response => {
       if (!response.ok) {
@@ -11,6 +11,7 @@ export const fetchImages = ({ query }) => {
       return response.json();
     })
     .then(images => {
+      console.log(images);
       return images.hits.map(
         ({
           comments,
